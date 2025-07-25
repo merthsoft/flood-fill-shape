@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+	<name>Flood Fill Shape</name>
+	<url>https://github.com/merthsoft/flood-fill-shape</url>
+	<author>merthsoft</author>
+	<supportedVersions>
+		<li>1.6</li>
+	</supportedVersions>
+	<packageId>Merthsoft.DesignatorShapes.FloodFill</packageId>
+	<description>Adds Trade Beacon outline and fill shapes to the drawing palette.
+
+Art by Halno.</description>
+	<modIconPath IgnoreIfNoMatchingField="True">UI/Commands/fill</modIconPath>
+</ModMetaData>

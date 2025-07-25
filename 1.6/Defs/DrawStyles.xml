@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+  <DrawStyleDef>
+    <defName>FloodFill</defName>
+    <label>flood fill</label>
+    <uiIconPath>UI/Commands/fill</uiIconPath>
+    <drawStyleType>Merthsoft.DesignatorShapes.FloodFill.Fill</drawStyleType>
+    <drawOutline>false</drawOutline>
+    <drawShortSideMeasurement>false</drawShortSideMeasurement>
+    <canSnap>false</canSnap>
+  </DrawStyleDef>
+</Defs>
