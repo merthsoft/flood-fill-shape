@@ -142,4 +142,15 @@ namespace Verse {
  public static class UI {public static IntVec3 Mouse=new(0,0,0);public static IntVec3 MouseCell()=>Mouse;}
  public class WindowStack {public List<Dialog_MessageBox> dialogs=new();public void Add(Dialog_MessageBox d)=>dialogs.Add(d);}
  public class Dialog_MessageBox {public Action confirm,cancel;public Dialog_MessageBox(string text,string buttonAText=null,Action buttonAAction=null,string buttonBText=null,Action buttonBAction=null,string title=null,bool buttonADestructive=false,Action cancelAction=null){confirm=buttonAAction;cancel=()=>{buttonBAction?.Invoke();cancelAction?.Invoke();};}}
+}namespace Merthsoft.DesignatorShapes {
+ public static class DesignatorShapes {
+  public static bool Visible, ThrowOnRead, ConfirmDestructive;public static int FloodFillCellLimit=2;
+  public static object CurrentTool {get;set;}
+  public static bool ShowControls {get {if(ThrowOnRead)throw new Exception("Host unavailable");return Visible;}}
+ }
 }
+namespace Verse {
+ public static class Log {public static void WarningOnce(string text,int key){}}
+ public static class Messages {public static int Count;public static void Message(string text,object type,bool historical)=>Count++;}
+}
+namespace RimWorld {public static class MessageTypeDefOf {public static object RejectInput=new();}}

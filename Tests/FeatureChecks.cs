@@ -81,5 +81,41 @@ static class FeatureChecks
         Find.WindowStack.dialogs.Single().cancel(); settings.ConfirmDestructiveFloodFill = false;
         manager = Setup(new Designator_Cancel());
         Check(FloodFillConfirmation.Prefix(manager) && Find.WindowStack.dialogs.Count == 0, "disabled confirmation preserves vanilla commit path");
-    }
+        Check(NativeFillOwnership.Inspect(null) == FillCellOwner.Native, "absent optional host leaves native ownership");
+        Check(NativeFillOwnership.Inspect(typeof(string)) == FillCellOwner.Unknown, "incompatible host metadata fails closed");
+        settings.ConfirmDestructiveFloodFill = true;
+        foreach(bool nativeConfirm in new[]{false,true}) foreach(bool integratedConfirm in new[]{false,true}) foreach(int cap in new[]{1,2})
+        {
+            Merthsoft.DesignatorShapes.DesignatorShapes.Visible=true;
+            Merthsoft.DesignatorShapes.DesignatorShapes.CurrentTool=new object();
+            Merthsoft.DesignatorShapes.DesignatorShapes.ConfirmDestructive=integratedConfirm;
+            Merthsoft.DesignatorShapes.DesignatorShapes.FloodFillCellLimit=cap;
+            settings.ConfirmDestructiveFloodFill=nativeConfirm;
+            var tool=new Designator_Cancel();manager=Setup(tool);
+            manager.Dragger.DragCells=Enumerable.Range(0,cap).Select(P).ToList();
+            var captured=manager.Dragger.DragCells.ToArray();
+            Check(FloodFillConfirmation.Prefix(manager) && manager.Dragger.Dragging && !Event.current.used
+                && Find.WindowStack.dialogs.Count==0 && tool.applied.Count==0 && manager.Dragger.DragCells.SequenceEqual(captured),
+                $"integrated owns cells regardless native option {nativeConfirm} integrated option {integratedConfirm} cap {cap}");
+        }
+        settings.ConfirmDestructiveFloodFill=true;
+        Merthsoft.DesignatorShapes.DesignatorShapes.Visible=false;
+        manager=Setup(new Designator_Cancel());
+        Check(!FloodFillConfirmation.Prefix(manager) && Find.WindowStack.dialogs.Count==1, "hidden integrated controls restore native confirmation ownership");
+        Find.WindowStack.dialogs.Single().cancel();
+        Merthsoft.DesignatorShapes.DesignatorShapes.Visible=true;Merthsoft.DesignatorShapes.DesignatorShapes.CurrentTool=null;
+        manager=Setup(new Designator_Cancel());
+        Check(!FloodFillConfirmation.Prefix(manager) && Find.WindowStack.dialogs.Count==1, "no integrated custom tool restores native ownership");
+        var pendingDialog=Find.WindowStack.dialogs.Single();var pendingTool=manager.SelectedDesignator;
+        Merthsoft.DesignatorShapes.DesignatorShapes.CurrentTool=new object();pendingDialog.confirm();
+        Check(pendingTool.applied.Count==0, "ownership transfer invalidates pending native confirmation");
+        Merthsoft.DesignatorShapes.DesignatorShapes.ThrowOnRead=true;
+        manager=Setup(new Designator_Cancel());var messageCount=Messages.Count;
+        Check(!FloodFillConfirmation.Prefix(manager) && !manager.Dragger.Dragging && Event.current.used
+            && Find.WindowStack.dialogs.Count==0 && manager.SelectedDesignator.applied.Count==0 && Messages.Count==messageCount+1,
+            "unknown host ownership cancels safely with clear message");
+        Merthsoft.DesignatorShapes.DesignatorShapes.ThrowOnRead=false;
+        Merthsoft.DesignatorShapes.DesignatorShapes.Visible=false;
+        Merthsoft.DesignatorShapes.DesignatorShapes.CurrentTool=null;
+        settings.ConfirmDestructiveFloodFill=false;    }
 }

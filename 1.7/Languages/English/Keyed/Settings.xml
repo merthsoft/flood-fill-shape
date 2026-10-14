@@ -10,4 +10,5 @@
   <Merthsoft_FloodFill_ConfirmDestructiveText>Apply {0} to {1} cells using flood fill? No changes are applied until you confirm.</Merthsoft_FloodFill_ConfirmDestructiveText>
   <Merthsoft_FloodFill_ConfirmApply>Apply action</Merthsoft_FloodFill_ConfirmApply>
   <Merthsoft_FloodFill_ConfirmKeep>Keep unchanged</Merthsoft_FloodFill_ConfirmKeep>
+  <Merthsoft_FloodFill_OwnershipUnavailable>Flood fill cancelled: the active Designator Shapes cell owner could not be determined. Check mod compatibility before trying again.</Merthsoft_FloodFill_OwnershipUnavailable>
 </LanguageData>

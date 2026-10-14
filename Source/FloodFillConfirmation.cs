@@ -22,6 +22,16 @@ public static class FloodFillConfirmation
             || !__instance.Dragger.Dragging)
             return true;
 
+        var owner = NativeFillOwnership.Current();
+        if (owner == FillCellOwner.Integrated) return true;
+        if (owner == FillCellOwner.Unknown)
+        {
+            __instance.Dragger.EndDrag();
+            e.Use();
+            Messages.Message("Merthsoft_FloodFill_OwnershipUnavailable".Translate(), MessageTypeDefOf.RejectInput, false);
+            return false;
+        }
+
         var map = Find.CurrentMap;
         if (map == null || !UI.MouseCell().InBounds(map))
         {
@@ -38,7 +48,8 @@ public static class FloodFillConfirmation
         if (cells.Length == 0) return false;
 
         var pending = new PendingFloodFillAction(
-            () => Find.CurrentMap == map && __instance.SelectedDesignator == tool && __instance.SelectedStyle == style,
+            () => Find.CurrentMap == map && __instance.SelectedDesignator == tool && __instance.SelectedStyle == style
+                && NativeFillOwnership.Current() == FillCellOwner.Native,
             () =>
             {
                 var allowed = FloodFill.Fill(seed).ToHashSet();
