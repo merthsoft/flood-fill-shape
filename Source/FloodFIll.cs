@@ -13,9 +13,12 @@ public static class FloodFill
     {
         var ret = new HashSet<IntVec3>();
         var map = Find.CurrentMap;
+        if (map == null || !t.InBounds(map))
+            return ret;
 
         var wallAtMouse = map.getWallDefAt(t);
-        var designationsAtMouse = map.getDesignationsAt(t);
+        // AllDesignationsAt returns a reused temporary list. Snapshot the seed before querying other cells.
+        var hasDesignationsAtMouse = map.getDesignationsAt(t).Any();
         var mineableAtMouse = map.getMineableAt(t);
         var floorAtMouse = map.getTerrainAt(t);
         var fertAtMouse = map.getFertilityAt(t);
@@ -53,7 +56,7 @@ public static class FloodFill
                 if (cellMineable?.def == mineableAtMouse.def)
                     addFlag = true;
             }
-            else if (designationsAtMouse?.Count() > 0)
+            else if (hasDesignationsAtMouse)
             {
                 if (cellDes.Count() > 0)
                     addFlag = true;
@@ -68,7 +71,7 @@ public static class FloodFill
                     foreach (var thing in cellThings)
                     {
                         var def = thing.def.entityDefToBuild == null ? thing.def : thing.def.entityDefToBuild as ThingDef;
-                        if (def.coversFloor || def.IsStructure())
+                        if (def?.coversFloor == true || def.IsStructure())
                         {
                             addFlag = false;
                             break;
