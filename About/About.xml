@@ -5,6 +5,7 @@
 	<author>merthsoft</author>
 	<supportedVersions>
 		<li>1.6</li>
+		<li>1.7</li>
 	</supportedVersions>
 	<packageId>Merthsoft.DesignatorShapes.FloodFill</packageId>
 	<description>Adds flood fill (paint bucket) tool to the drawing palette.
