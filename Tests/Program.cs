@@ -6,10 +6,10 @@ static class Program {
  static IntVec3 P(int x)=>new(x,0,0);
  static void Main(){
   var persisted=new FloodFillSettings();
- persisted.RestrictFloodFillToRevealedCells=true;persisted.ExposeData();
+ persisted.RestrictFloodFillToRevealedCells=true;persisted.EnableCustomFloodFillBarriers=true;persisted.ConfirmDestructiveFloodFill=true;persisted.AdditionalFloodFillBarrierDefs.Add("Table");persisted.ExposeData();
  Scribe_Values.Loading=true;var restored=new FloodFillSettings();restored.ExposeData();
- if(!restored.RestrictFloodFillToRevealedCells)throw new Exception("Setting did not round trip");
- Scribe_Values.Values.Clear();restored.ExposeData();if(restored.RestrictFloodFillToRevealedCells)throw new Exception("Missing setting did not default false");Scribe_Values.Loading=false;
+ if(!restored.RestrictFloodFillToRevealedCells || !restored.EnableCustomFloodFillBarriers || !restored.ConfirmDestructiveFloodFill || !restored.AdditionalFloodFillBarrierDefs.SequenceEqual(new[]{"Table"}))throw new Exception("Settings did not round trip");
+ Scribe_Values.Values.Clear();restored.ExposeData();if(restored.RestrictFloodFillToRevealedCells || restored.EnableCustomFloodFillBarriers || restored.ConfirmDestructiveFloodFill)throw new Exception("Missing setting did not default false");Scribe_Values.Loading=false;
  Console.WriteLine("PASS production settings expose true and missing-value false through Scribe fixture");
  Find.CurrentMap=null; if(FloodFill.Fill(P(0)).Any())throw new Exception("No-map preview"); Console.WriteLine("PASS absent map returns empty");
  var map=new Map();Find.CurrentMap=map; if(FloodFill.Fill(P(-1)).Any())throw new Exception("Off-map preview"); Console.WriteLine("PASS off-map seed returns empty");
@@ -80,14 +80,24 @@ static class Program {
  if(FloodFill.Fill(new(2,0,1)).Any())throw new Exception("Resource-only flagged mineable bypassed exposure");
  Console.WriteLine("PASS resource rock flag alone requires exposed face");
  FloodFillMod.Settings.RestrictFloodFillToRevealedCells=false;
+ FeatureChecks.Run();
  }
 }
-namespace RimWorld { }
+namespace RimWorld {
+ public class Designator_Cancel:Verse.Designator{} public class Designator_Mine:Verse.Designator{}
+ public class Designator_Deconstruct:Verse.Designator{} public class Designator_PlantsCut:Verse.Designator{}
+ public class Designator_RemoveFloor:Verse.Designator{} public class Designator_MineVein:Designator_Mine{}
+ public class Designator_Harvest:Verse.Designator{} public class Designator_ZoneAdd:Verse.Designator{}
+}
+namespace HarmonyLib {
+ [AttributeUsage(AttributeTargets.Class)] public class HarmonyPatch:Attribute {public HarmonyPatch(Type t,string n){}}
+ public class Harmony {public Harmony(string id){}public void PatchAll(){}}
+}
 namespace Verse {
  public record struct IntVec3(int x,int y,int z){public static IntVec3 North=>new(0,0,1);public static IntVec3 South=>new(0,0,-1);public static IntVec3 East=>new(1,0,0);public static IntVec3 West=>new(-1,0,0);public static IntVec3 operator +(IntVec3 a,IntVec3 b)=>new(a.x+b.x,0,a.z+b.z);public bool InBounds(Map m)=>x>=0&&x<m.width&&z>=0&&z<m.height;public Thing GetEdifice(Map m)=>m.thingGrid.ThingsListAtFast(this).FirstOrDefault();public bool Fogged(Map m)=>m.fogged.Contains(this);public List<Thing> GetThingList(Map m)=>m.thingGrid.ThingsListAtFast(this);}
  public class Def {public string defName="";}
  public class BuildableDef:Def {public Def designationCategory;}
- public class ThingDef:BuildableDef {public BuildableDef entityDefToBuild;public bool coversFloor;public BuildingProperties building;public float fillPercent;}
+ public class ThingDef:BuildableDef {public string label;public string LabelCap=>label??defName;public ThingCategory category;public BuildableDef entityDefToBuild;public bool coversFloor;public BuildingProperties building;public float fillPercent;}
  public class TerrainDef:BuildableDef {public bool IsFloor;}
  public class BuildingProperties {public bool isNaturalRock;public bool isResourceRock;}
  public static class GenAdj {public static IntVec3[] CardinalDirections={IntVec3.North,IntVec3.East,IntVec3.South,IntVec3.West};}
@@ -101,18 +111,35 @@ namespace Verse {
  public class DesignationManager {public HashSet<IntVec3> cells=new();static List<Designation> tmp=new();public IEnumerable<Designation> AllDesignationsAt(IntVec3 c){tmp.Clear();if(cells.Contains(c))tmp.Add(new());return tmp;}}
  public class TerrainGrid {public TerrainDef TerrainAt(IntVec3 c)=>new();}
  public class FertilityGrid {public float FertilityAt(IntVec3 c)=>1;}
- public class Designator {public (bool Accepted,int unused) CanDesignateCell(IntVec3 c)=>(true,0);}
- public class DesignatorManager {public Designator SelectedDesignator=new();}
+ public class Designator {public string LabelCap=>GetType().Name;public List<IntVec3> applied=new();public HashSet<IntVec3> rejected=new();public (bool Accepted,int unused) CanDesignateCell(IntVec3 c)=>(!rejected.Contains(c),0);public void DesignateMultiCell(IEnumerable<IntVec3> cells)=>applied.AddRange(cells);}
+ public class DesignatorManager {public void ProcessInputEvents(){}public DrawStyleDef SelectedStyle;public DesignationDragger Dragger=new();public Designator SelectedDesignator=new();}
  public class PlaySettings {public bool showFertilityOverlay;}
- public static class Find {public static Map CurrentMap;public static DesignatorManager DesignatorManager=new();public static PlaySettings PlaySettings=new();}
+ public static class Find {public static WindowStack WindowStack=new();public static Map CurrentMap;public static DesignatorManager DesignatorManager=new();public static PlaySettings PlaySettings=new();}
 }
 
-namespace UnityEngine {public struct Rect {}}
+namespace UnityEngine {
+ public struct Rect {public float width;public Rect(float x,float y,float w,float h){width=w;}}
+ public struct Vector2 {}
+ public enum EventType {MouseUp,MouseDown,Repaint}
+ public class Event {public static Event current=new();public EventType type;public int button;public bool used;public void Use()=>used=true;}
+}
 namespace Verse {
  public class ModSettings {public virtual void ExposeData(){}}
  public class ModContentPack {}
  public class Mod {public Mod(ModContentPack p){}public T GetSettings<T>() where T:new()=>new();public virtual string SettingsCategory()=>"";public virtual void DoSettingsWindowContents(UnityEngine.Rect r){}}
- public class Listing_Standard {public void Begin(UnityEngine.Rect r){}public void End(){}public void CheckboxLabeled(string text,ref bool value,string tip){}}
- public static class Translation {public static string Translate(this string text)=>text;}
+ public class Listing_Standard {public void Gap(){}public void Label(string s){}public string TextEntry(string s)=>s;public UnityEngine.Rect GetRect(float h)=>new(0,0,300,h);public void Begin(UnityEngine.Rect r){}public void End(){}public void CheckboxLabeled(string text,ref bool value,string tip){}}
+ public static class Translation {public static string Translate(this string text,params object[] args)=>text;}
  public static class Scribe_Values {public static bool Loading;public static Dictionary<string,bool> Values=new();public static void Look(ref bool value,string key,bool defaultValue){if(Loading)value=Values.TryGetValue(key,out var saved)?saved:defaultValue;else Values[key]=value;}}
+}namespace Verse {
+ public enum ThingCategory {Building,Item}
+ public static class DefDatabase<T>{public static List<T> AllDefsListForReading=new();}
+ public enum LookMode {Value}
+ public static class Scribe_Collections {public static Dictionary<string,List<string>> Values=new();public static void Look(ref List<string> list,string key,LookMode mode){if(Scribe_Values.Loading)list=Values.TryGetValue(key,out var stored)?new(stored):null;else Values[key]=new(list);}}
+ public static class Widgets {public static void BeginScrollView(UnityEngine.Rect r,ref UnityEngine.Vector2 v,UnityEngine.Rect view){}public static void EndScrollView(){}public static void CheckboxLabeled(UnityEngine.Rect r,string label,ref bool value){}}
+ public abstract class DrawStyle {public abstract void Update(IntVec3 origin,IntVec3 target,List<IntVec3> buffer);}
+ public class DrawStyleDef {public DrawStyle DrawStyleWorker;}
+ public class DesignationDragger {public bool Dragging=true;public List<IntVec3> DragCells=new();public void EndDrag()=>Dragging=false;}
+ public static class UI {public static IntVec3 Mouse=new(0,0,0);public static IntVec3 MouseCell()=>Mouse;}
+ public class WindowStack {public List<Dialog_MessageBox> dialogs=new();public void Add(Dialog_MessageBox d)=>dialogs.Add(d);}
+ public class Dialog_MessageBox {public Action confirm,cancel;public Dialog_MessageBox(string text,string buttonAText=null,Action buttonAAction=null,string buttonBText=null,Action buttonBAction=null,string title=null,bool buttonADestructive=false,Action cancelAction=null){confirm=buttonAAction;cancel=()=>{buttonBAction?.Invoke();cancelAction?.Invoke();};}}
 }

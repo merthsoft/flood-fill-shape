@@ -2,4 +2,12 @@
 <LanguageData>
   <Merthsoft_FloodFill_Settings_RestrictToRevealedCells>Restrict flood fill to revealed cells</Merthsoft_FloodFill_Settings_RestrictToRevealedCells>
   <Merthsoft_FloodFill_Settings_RestrictToRevealedCellsTooltip>When enabled, flood fill cannot start in or spread through fogged cells or concealed natural rock and ore. Rock and ore must have a cardinal face next to an unfogged cell without linked rock or a full solid structure. Diagonal-only exposure and enclosed interiors are excluded. When disabled (default), existing ore scouting behavior is preserved.</Merthsoft_FloodFill_Settings_RestrictToRevealedCellsTooltip>
+  <Merthsoft_FloodFill_Settings_AdditionalBarriers>Use additional flood-fill barriers</Merthsoft_FloodFill_Settings_AdditionalBarriers>
+  <Merthsoft_FloodFill_Settings_AdditionalBarriersTooltip>Selected buildings also block region fills, including their blueprints and frames. Existing barriers remain. Filling the same wall or ore type as the starting cell is still allowed. Disabled by default.</Merthsoft_FloodFill_Settings_AdditionalBarriersTooltip>
+  <Merthsoft_FloodFill_Settings_SearchBuildings>Search building labels</Merthsoft_FloodFill_Settings_SearchBuildings>
+  <Merthsoft_FloodFill_Settings_ConfirmDestructive>Confirm destructive flood-fill actions</Merthsoft_FloodFill_Settings_ConfirmDestructive>
+  <Merthsoft_FloodFill_Settings_ConfirmDestructiveTooltip>Ask once before committing a flood fill that cancels plans or designations, mines, deconstructs, cuts plants, or removes floors. Previews, harvesting, zones, and floor placement are unaffected. Disabled by default.</Merthsoft_FloodFill_Settings_ConfirmDestructiveTooltip>
+  <Merthsoft_FloodFill_ConfirmDestructiveText>Apply {0} to {1} cells using flood fill? No changes are applied until you confirm.</Merthsoft_FloodFill_ConfirmDestructiveText>
+  <Merthsoft_FloodFill_ConfirmApply>Apply action</Merthsoft_FloodFill_ConfirmApply>
+  <Merthsoft_FloodFill_ConfirmKeep>Keep unchanged</Merthsoft_FloodFill_ConfirmKeep>
 </LanguageData>

@@ -12,4 +12,10 @@
 
 Art by Halno.</description>
 	<modIconPath IgnoreIfNoMatchingField="True">UI/Commands/fill</modIconPath>
+  <modDependenciesByVersion>
+    <v1.7>
+      <li><packageId>brrainz.harmony</packageId><displayName>Harmony</displayName><steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl></li>
+    </v1.7>
+  </modDependenciesByVersion>
+  <loadAfterByVersion><v1.7><li>brrainz.harmony</li></v1.7></loadAfterByVersion>
 </ModMetaData>
