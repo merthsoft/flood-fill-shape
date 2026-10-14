@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <Merthsoft_FloodFill_Settings_RestrictToRevealedCells>Restrict flood fill to revealed cells</Merthsoft_FloodFill_Settings_RestrictToRevealedCells>
+  <Merthsoft_FloodFill_Settings_RestrictToRevealedCellsTooltip>When enabled, flood fill cannot start in or spread through fogged cells or concealed natural rock and ore. Rock and ore must have a cardinal face next to an unfogged cell without a full solid structure. Diagonal-only exposure and enclosed interiors are excluded. When disabled (default), existing ore scouting behavior is preserved.</Merthsoft_FloodFill_Settings_RestrictToRevealedCellsTooltip>
+</LanguageData>

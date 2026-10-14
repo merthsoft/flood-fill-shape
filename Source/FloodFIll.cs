@@ -13,7 +13,8 @@ public static class FloodFill
     {
         var ret = new HashSet<IntVec3>();
         var map = Find.CurrentMap;
-        if (map == null || !t.InBounds(map))
+        var restrictToRevealedCells = FloodFillMod.Settings.RestrictFloodFillToRevealedCells;
+        if (map == null || !t.InBounds(map) || (restrictToRevealedCells && !IsRevealedForFill(t, map)))
             return ret;
 
         var wallAtMouse = map.getWallDefAt(t);
@@ -29,7 +30,7 @@ public static class FloodFill
         while (cells.Count() > 0 && ret.Count() < FloodFillCellLimit)
         {
             var cell = cells.Dequeue();
-            if (!cell.InBounds(map))
+            if (!cell.InBounds(map) || (restrictToRevealedCells && !IsRevealedForFill(cell, map)))
                 continue;
             if (ret.Contains(cell))
                 continue;
@@ -83,16 +84,41 @@ public static class FloodFill
             if (addFlag)
             {
                 ret.Add(cell);
-                cells.Enqueue(cell + IntVec3.North);
-                cells.Enqueue(cell + IntVec3.East);
-                cells.Enqueue(cell + IntVec3.South);
-                cells.Enqueue(cell + IntVec3.West);
+                EnqueueRevealedNeighbor(cell + IntVec3.North);
+                EnqueueRevealedNeighbor(cell + IntVec3.East);
+                EnqueueRevealedNeighbor(cell + IntVec3.South);
+                EnqueueRevealedNeighbor(cell + IntVec3.West);
             }
         }
 
         return ret;
+
+        void EnqueueRevealedNeighbor(IntVec3 neighbor)
+        {
+            if (!restrictToRevealedCells || (neighbor.InBounds(map) && IsRevealedForFill(neighbor, map)))
+                cells.Enqueue(neighbor);
+        }
     }
 
+    // Vanilla has no per-ore discovery flag. Require an exposed face for natural rock,
+    // rather than allowing unfogged, enclosed interiors to disclose their ore type.
+    private static bool IsRevealedForFill(IntVec3 cell, Map map)
+    {
+        if (cell.Fogged(map))
+            return false;
+        var mineable = map.getMineableAt(cell);
+        if (mineable?.def.building?.isNaturalRock != true && mineable?.def.building?.isResourceRock != true)
+            return true;
+
+        foreach (var direction in GenAdj.CardinalDirections)
+        {
+            var neighbor = cell + direction;
+            if (neighbor.InBounds(map) && !neighbor.Fogged(map)
+                && (neighbor.GetEdifice(map)?.def.fillPercent ?? 0f) < 1f)
+                return true;
+        }
+        return false;
+    }
     private static float getFertilityAt(this Map map, IntVec3 cell)
         => map.fertilityGrid.FertilityAt(cell);
 
