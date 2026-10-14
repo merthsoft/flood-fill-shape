@@ -84,7 +84,7 @@ static class Program {
  }
 }
 namespace RimWorld {
- public class Designator_Cancel:Verse.Designator{} public class Designator_Mine:Verse.Designator{}
+ public class Designator_Cancel:Verse.Designator{} public class Designator_Plan_Remove:Verse.Designator{} public class Designator_Mine:Verse.Designator{}
  public class Designator_Deconstruct:Verse.Designator{} public class Designator_PlantsCut:Verse.Designator{}
  public class Designator_RemoveFloor:Verse.Designator{} public class Designator_MineVein:Designator_Mine{}
  public class Designator_Harvest:Verse.Designator{} public class Designator_ZoneAdd:Verse.Designator{}

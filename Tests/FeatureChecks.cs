@@ -45,7 +45,7 @@ static class FeatureChecks
             return dm;
         }
         settings.ConfirmDestructiveFloodFill = true;
-        foreach (var tool in new Designator[] { new Designator_Cancel(), new Designator_Mine(), new Designator_MineVein(), new Designator_Deconstruct(), new Designator_PlantsCut(), new Designator_RemoveFloor() })
+        foreach (var tool in new Designator[] { new Designator_Cancel(), new Designator_Plan_Remove(), new Designator_Mine(), new Designator_MineVein(), new Designator_Deconstruct(), new Designator_PlantsCut(), new Designator_RemoveFloor() })
             Check(FloodFillConfirmation.IsDestructive(tool), "destructive whitelist " + tool.GetType().Name);
         foreach (var tool in new Designator[] { new Designator_Harvest(), new Designator_ZoneAdd(), new Designator() })
             Check(FloodFillConfirmation.Prefix(Setup(tool)) && Find.WindowStack.dialogs.Count == 0, "no confirmation for " + tool.GetType().Name);
@@ -65,6 +65,11 @@ static class FeatureChecks
             if (context == "style") manager.SelectedStyle = new() { DrawStyleWorker = new Fill() };
             dialog.confirm(); Check(tool.applied.Count == 0, "changed " + context + " invalidates confirmation");
         }
+        var blockedTool = new Designator_Cancel(); manager = Setup(blockedTool); FloodFillConfirmation.Prefix(manager);
+        dialog = Find.WindowStack.dialogs.Single();
+        settings.RestrictFloodFillToRevealedCells = true; Find.CurrentMap.fogged.Add(P(1)); dialog.confirm();
+        Check(blockedTool.applied.SequenceEqual(new[] { P(0) }), "confirmation rechecks current fog and fill eligibility");
+        settings.RestrictFloodFillToRevealedCells = false;
         manager = Setup(new Designator_Cancel()); Event.current.type = EventType.Repaint;
         Check(FloodFillConfirmation.Prefix(manager) && Find.WindowStack.dialogs.Count == 0, "preview repaint never prompts");
         Event.current.type = EventType.MouseUp; manager.SelectedStyle = null;
