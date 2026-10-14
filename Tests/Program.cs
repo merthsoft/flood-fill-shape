@@ -23,6 +23,12 @@ static class Program {
  fill=FloodFill.Fill(P(0)).ToHashSet();
  if(!fill.SetEquals(new[]{P(0),P(1)}))throw new Exception("Designation seed changed during traversal: "+fill.Count);
  Console.WriteLine("PASS designated seed stays restricted to designated cells");
+ foreach(bool rockBarrier in new[]{false,true}) {
+ map=new Map();Find.CurrentMap=map;map.designationManager.cells.UnionWith(new[]{P(0),P(1),P(2)});
+ map.thingGrid.cells[P(1)]=new(){rockBarrier?new Mineable{def=new ThingDef{defName="Rock"}}:new Thing{def=door}};
+ if(!FloodFill.Fill(P(0)).ToHashSet().SetEquals(new[]{P(0)}))throw new Exception("Plan crossed designated "+(rockBarrier?"rock":"wall"));
+ Console.WriteLine("PASS plan cannot cross designated "+(rockBarrier?"rock":"wall")+" to outside plan");
+ }
  map=new Map();Find.CurrentMap=map;map.thingGrid.cells[P(1)]=new(){new Thing{def=new ThingDef{entityDefToBuild=new TerrainDef()}}}; if(FloodFill.Fill(P(0)).Count()!=4)throw new Exception("Terrain blueprint"); Console.WriteLine("PASS terrain blueprint does not throw or block fill");
  map=new Map();Find.CurrentMap=map;map.width=2000;
  if(FloodFill.Fill(P(0)).Count()!=1500)throw new Exception("Cell limit");
@@ -60,6 +66,19 @@ static class Program {
  map=OreBlock();Find.CurrentMap=map;map.thingGrid.cells.Remove(new(0,0,0));map.thingGrid.cells.Remove(new(4,0,0));
  if(!FloodFill.Fill(new(0,0,1)).ToHashSet().SetEquals(new[]{new IntVec3(0,0,1)}))throw new Exception("Concealed ore bridge crossed");
  Console.WriteLine("PASS concealed unfogged ore bridge cannot connect exposed ends");
+ map=OreBlock();Find.CurrentMap=map;
+ foreach(var neighbor in new[]{new IntVec3(1,0,1),new IntVec3(3,0,1),new IntVec3(2,0,0),new IntVec3(2,0,2)})map.thingGrid.cells[neighbor]=new(){new Thing{def=new ThingDef{defName="Wall",fillPercent=1,designationCategory=new(){defName="Structure"}}}};
+ if(FloodFill.Fill(new(2,0,1)).Any())throw new Exception("Constructed walls falsely exposed ore");
+ Console.WriteLine("PASS full constructed walls conceal ore without Rock links");
+ map.thingGrid.cells[new(2,0,0)].Clear();
+ if(!FloodFill.Fill(new(2,0,1)).ToHashSet().SetEquals(new[]{new IntVec3(2,0,1)}))throw new Exception("Opening constructed wall did not expose ore");
+ Console.WriteLine("PASS opening constructed wall exposes ore face");
+ map.linkGrid.rocks.Add(new(2,0,0));
+ if(FloodFill.Fill(new(2,0,1)).Any())throw new Exception("Rock link treated as exposed face");
+ Console.WriteLine("PASS Rock-linked neighbor conceals face even without full edifice");
+ map=OreBlock();Find.CurrentMap=map;map.thingGrid.cells[new(2,0,1)]=new(){new Mineable{def=new ThingDef{defName="ModResource",fillPercent=1,building=new(){isResourceRock=true}}}};
+ if(FloodFill.Fill(new(2,0,1)).Any())throw new Exception("Resource-only flagged mineable bypassed exposure");
+ Console.WriteLine("PASS resource rock flag alone requires exposed face");
  FloodFillMod.Settings.RestrictFloodFillToRevealedCells=false;
  }
 }
@@ -75,7 +94,9 @@ namespace Verse {
  public class Thing {public ThingDef def;}
  public class Mineable:Thing {}
  public class Designation {}
- public class Map {public HashSet<IntVec3> fogged=new();public int height=1;public int width=4;public ThingGrid thingGrid=new();public DesignationManager designationManager=new();public TerrainGrid terrainGrid=new();public FertilityGrid fertilityGrid=new();}
+ [Flags] public enum LinkFlags {None=0,Rock=1}
+ public class LinkGrid {public HashSet<IntVec3> rocks=new();public LinkFlags LinkFlagsAt(IntVec3 c)=>rocks.Contains(c)?LinkFlags.Rock:LinkFlags.None;}
+ public class Map {public LinkGrid linkGrid=new();public HashSet<IntVec3> fogged=new();public int height=1;public int width=4;public ThingGrid thingGrid=new();public DesignationManager designationManager=new();public TerrainGrid terrainGrid=new();public FertilityGrid fertilityGrid=new();}
  public class ThingGrid {public Dictionary<IntVec3,List<Thing>> cells=new();public List<Thing> ThingsListAtFast(IntVec3 c){if(!c.InBounds(Find.CurrentMap))throw new Exception("Off-map query");return cells.TryGetValue(c,out var t)?t:new();}}
  public class DesignationManager {public HashSet<IntVec3> cells=new();static List<Designation> tmp=new();public IEnumerable<Designation> AllDesignationsAt(IntVec3 c){tmp.Clear();if(cells.Contains(c))tmp.Add(new());return tmp;}}
  public class TerrainGrid {public TerrainDef TerrainAt(IntVec3 c)=>new();}

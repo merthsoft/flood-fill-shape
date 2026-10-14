@@ -59,7 +59,7 @@ public static class FloodFill
             }
             else if (hasDesignationsAtMouse)
             {
-                if (cellDes.Count() > 0)
+                if (cellWall == null && cellMineable == null && cellDes.Any())
                     addFlag = true;
             }
             else if (cellWall == null && cellMineable == null)
@@ -114,6 +114,7 @@ public static class FloodFill
         {
             var neighbor = cell + direction;
             if (neighbor.InBounds(map) && !neighbor.Fogged(map)
+                && (map.linkGrid.LinkFlagsAt(neighbor) & LinkFlags.Rock) == 0
                 && (neighbor.GetEdifice(map)?.def.fillPercent ?? 0f) < 1f)
                 return true;
         }
