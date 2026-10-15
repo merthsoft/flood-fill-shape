@@ -56,11 +56,9 @@ public static class FloodFillConfirmation
                 var accepted = cells.Where(c => allowed.Contains(c) && c.InBounds(map) && tool.CanDesignateCell(c).Accepted).ToArray();
                 if (accepted.Length > 0) tool.DesignateMultiCell(accepted);
             });
-        Find.WindowStack.Add(new Dialog_MessageBox(
+        Find.WindowStack.Add(new FloodFillConfirmationDialog(
             "Merthsoft_FloodFill_ConfirmDestructiveText".Translate(tool.LabelCap, cells.Length),
-            buttonAText: "Merthsoft_FloodFill_ConfirmApply".Translate(), buttonAAction: pending.Confirm,
-            buttonBText: "Merthsoft_FloodFill_ConfirmKeep".Translate(), buttonBAction: pending.Cancel,
-            buttonADestructive: true, cancelAction: pending.Cancel));
+            pending.Confirm, pending.Cancel));
         return false;
     }
 }

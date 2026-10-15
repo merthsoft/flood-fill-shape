@@ -30,6 +30,7 @@
     <Compile Include="FloodFillSettings.cs" />
     <Compile Include="PendingFloodFillAction.cs" />
     <Compile Include="FloodFillConfirmation.cs" />
+    <Compile Include="FloodFillConfirmationDialog.cs" />
     <Compile Include="NativeFillOwnership.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FloodFill.cs" />

@@ -9,6 +9,18 @@ static class FeatureChecks
     static void Check(bool condition, string name) { if (!condition) throw new Exception(name); Console.WriteLine("PASS " + name); }
     public static void Run()
     {
+        var originalTool = new Designator_Cancel();
+        Find.DesignatorManager = new DesignatorManager {SelectedDesignator=originalTool};
+        new Dialog_MessageBox("control").PreOpen();
+        Check(Find.DesignatorManager.SelectedDesignator==null, "control reproduces real Dialog layer deselection");
+        Find.DesignatorManager.SelectedDesignator=originalTool;
+        var preservingDialog=new FloodFillConfirmationDialog("test",()=>{},()=>{});
+        preservingDialog.PreOpen();
+        Check(Find.DesignatorManager.SelectedDesignator==originalTool && preservingDialog.layer==WindowLayer.Dialog, "realistic dialog opening preserves tool and Dialog ordering");
+        Dialog_MessageBox.ThrowOnInitialize=true;
+        try {preservingDialog.PreOpen();}catch(Exception){}
+        Dialog_MessageBox.ThrowOnInitialize=false;
+        Check(preservingDialog.layer==WindowLayer.Dialog, "dialog layer restored even if initialization throws");
         var settings = FloodFillMod.Settings;
         Check(!settings.EnableCustomFloodFillBarriers && !settings.ConfirmDestructiveFloodFill, "barriers and confirmation default off");
         var table = new ThingDef { defName = "Table" };

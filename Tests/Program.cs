@@ -140,8 +140,10 @@ namespace Verse {
  public class DrawStyleDef {public DrawStyle DrawStyleWorker;}
  public class DesignationDragger {public bool Dragging=true;public List<IntVec3> DragCells=new();public void EndDrag()=>Dragging=false;}
  public static class UI {public static IntVec3 Mouse=new(0,0,0);public static IntVec3 MouseCell()=>Mouse;}
- public class WindowStack {public List<Dialog_MessageBox> dialogs=new();public void Add(Dialog_MessageBox d)=>dialogs.Add(d);}
- public class Dialog_MessageBox {public Action confirm,cancel;public Dialog_MessageBox(string text,string buttonAText=null,Action buttonAAction=null,string buttonBText=null,Action buttonBAction=null,string title=null,bool buttonADestructive=false,Action cancelAction=null){confirm=buttonAAction;cancel=()=>{buttonBAction?.Invoke();cancelAction?.Invoke();};}}
+ public class WindowStack {public List<Dialog_MessageBox> dialogs=new();public void Add(Dialog_MessageBox d){d.PreOpen();dialogs.Add(d);}}
+ public enum WindowLayer {GameUI,Dialog,SubSuper,Super}
+ public readonly record struct TaggedString(string Value){public static implicit operator TaggedString(string s)=>new(s);}
+ public class Dialog_MessageBox {public WindowLayer layer=WindowLayer.Dialog;public static bool ThrowOnInitialize;public virtual void PreOpen(){if(ThrowOnInitialize)throw new Exception("Sizing failed");if(layer==WindowLayer.Dialog)Find.DesignatorManager.SelectedDesignator=null;}public Action confirm,cancel;public Dialog_MessageBox(TaggedString text,string buttonAText=null,Action buttonAAction=null,string buttonBText=null,Action buttonBAction=null,string title=null,bool buttonADestructive=false,Action cancelAction=null){confirm=buttonAAction;cancel=()=>{buttonBAction?.Invoke();cancelAction?.Invoke();};}}
 }namespace Merthsoft.DesignatorShapes {
  public static class DesignatorShapes {
   public static bool Visible, ThrowOnRead, ConfirmDestructive;public static int FloodFillCellLimit=2;
